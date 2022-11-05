@@ -1,5 +1,6 @@
 package com.gucardev.backend.socket;
 
+import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
@@ -15,23 +16,18 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SocketModule {
 
-
-    private final SocketIOServer server;
     private final SocketService socketService;
 
     public SocketModule(SocketIOServer server, SocketService socketService) {
-        this.server = server;
         this.socketService = socketService;
         server.addConnectListener(onConnected());
         server.addDisconnectListener(onDisconnected());
         server.addEventListener("send_message", Message.class, onChatReceived());
-
     }
-
 
     private DataListener<Message> onChatReceived() {
         return (senderClient, data, ackSender) -> {
-            log.info(data.toString());
+            log.info("*** Received from client: {}", data);
             socketService.saveMessage(senderClient, data);
         };
     }
@@ -41,7 +37,8 @@ public class SocketModule {
         return (client) -> {
 //            String room = client.getHandshakeData().getSingleUrlParam("room");
 //            String username = client.getHandshakeData().getSingleUrlParam("room");
-            var params = client.getHandshakeData().getUrlParams();
+            HandshakeData handshakeData = client.getHandshakeData();
+            var params = handshakeData.getUrlParams();
             String room = params.get("room").stream().collect(Collectors.joining());
             String username = params.get("username").stream().collect(Collectors.joining());
             client.joinRoom(room);
@@ -57,7 +54,7 @@ public class SocketModule {
             String room = params.get("room").stream().collect(Collectors.joining());
             String username = params.get("username").stream().collect(Collectors.joining());
             socketService.saveInfoMessage(client, String.format(Constants.DISCONNECT_MESSAGE, username), room);
-            log.info("Socket ID[{}] - room[{}] - username [{}]  discnnected to chat module through", client.getSessionId().toString(), room, username);
+            log.info("Socket ID[{}] - room[{}] - username [{}]  Disconnected to chat module through", client.getSessionId().toString(), room, username);
         };
     }
 

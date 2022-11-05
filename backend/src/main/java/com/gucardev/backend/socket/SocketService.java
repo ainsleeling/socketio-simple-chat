@@ -12,18 +12,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class SocketService {
-
-
     private final MessageService messageService;
 
-
     public void sendSocketMessage(SocketIOClient senderClient, Message message, String room) {
-        for (
-                SocketIOClient client : senderClient.getNamespace().getRoomOperations(room).getClients()) {
-            if (!client.getSessionId().equals(senderClient.getSessionId())) {
-                client.sendEvent("read_message",
-                        message);
+        for (SocketIOClient client : senderClient.getNamespace().getRoomOperations(room).getClients()) {
+            if (client.getSessionId().equals(senderClient.getSessionId())) {
+                continue;
             }
+            client.sendEvent("read_message", message);
         }
     }
 

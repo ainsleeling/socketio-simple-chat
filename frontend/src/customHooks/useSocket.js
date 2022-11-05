@@ -31,7 +31,7 @@ export const useSocket = (room, username) => {
     setSocket(s);
     s.on("connect", () => setConnected(true));
     s.on("read_message", (res) => {
-      console.log(res);
+      console.log("Received from server:", res);
       setSocketResponse({
         room: res.room,
         content: res.content,
